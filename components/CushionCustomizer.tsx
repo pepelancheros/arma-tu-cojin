@@ -13,6 +13,12 @@ const mandalaComponents = {
   geometrico: MandalaGeometrico,
 };
 
+type CartItem = {
+  id: number;
+  fabric: FabricColor;
+  paint: PaintColor;
+  mandala: Mandala;
+};
 
 function isLightColor(hex: string): boolean {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -97,18 +103,70 @@ function MandalaCard({
   );
 }
 
+function CartItemRow({ item, onRemove }: { item: CartItem; onRemove: () => void }) {
+  return (
+    <div className="flex items-center gap-3 py-3 border-b border-[#E8DDD4] last:border-0">
+      {/* Color dots */}
+      <div className="flex items-center gap-1.5">
+        <span
+          className="w-5 h-5 rounded-full shrink-0"
+          style={{ backgroundColor: item.fabric.hex, boxShadow: '0 0 0 1px rgba(0,0,0,0.12)' }}
+          title={`Tela: ${item.fabric.name}`}
+        />
+        <span
+          className="w-5 h-5 rounded-full shrink-0"
+          style={{ backgroundColor: item.paint.hex, boxShadow: '0 0 0 1px rgba(0,0,0,0.12)' }}
+          title={`Pintura: ${item.paint.name}`}
+        />
+      </div>
+
+      {/* Description */}
+      <p className="flex-1 text-sm text-[#2A2420]">
+        {item.fabric.name} · {item.paint.name} · {item.mandala.name}
+      </p>
+
+      {/* Remove */}
+      <button
+        onClick={onRemove}
+        className="text-[#7A6E66] hover:text-[#2A2420] transition-colors text-lg leading-none focus:outline-none"
+        title="Eliminar"
+      >
+        ×
+      </button>
+    </div>
+  );
+}
+
 export function CushionCustomizer() {
   const [selectedFabric, setSelectedFabric] = useState<FabricColor>(fabricColors[0]);
   const [selectedPaint, setSelectedPaint]   = useState<PaintColor>(paintColors[0]);
   const [selectedMandala, setSelectedMandala] = useState<Mandala>(mandalas[0]);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [nextId, setNextId] = useState(1);
 
   function handleFabricChange(fabric: FabricColor) {
     setSelectedFabric(fabric);
-    // If the current paint has the same id as the new fabric, switch to the first different option
     if (selectedPaint.id === fabric.id) {
       const fallback = paintColors.find(p => p.id !== fabric.id);
       if (fallback) setSelectedPaint(fallback);
     }
+  }
+
+  function addToCart() {
+    setCart(prev => [...prev, { id: nextId, fabric: selectedFabric, paint: selectedPaint, mandala: selectedMandala }]);
+    setNextId(n => n + 1);
+  }
+
+  function removeFromCart(id: number) {
+    setCart(prev => prev.filter(item => item.id !== id));
+  }
+
+  function buildWhatsAppMessage() {
+    const items = cart.map((item, i) =>
+      `Cojín ${i + 1}:\n• Tela: ${item.fabric.name}\n• Pintura: ${item.paint.name}\n• Diseño: ${item.mandala.name}`
+    );
+    const total = `Total: ${cart.length} cojín${cart.length > 1 ? 'es' : ''}`;
+    return `Hola! Quisiera hacer un pedido de cojines de meditación:\n\n${items.join('\n\n')}\n\n${total}`;
   }
 
   return (
@@ -197,15 +255,63 @@ export function CushionCustomizer() {
               </div>
             </section>
 
-            {/* CTA */}
-            <div className="pt-2">
-              <button className="w-full py-4 bg-[#2A2420] text-[#F9F6F1] text-sm font-medium tracking-[0.18em] uppercase rounded-full hover:bg-[#3D3535] active:scale-[0.98] transition-all">
-                Hacer pedido
+            {/* Add to cart */}
+            <div className="pt-2 space-y-3">
+              <button
+                onClick={addToCart}
+                className="w-full py-4 border-2 border-[#2A2420] text-[#2A2420] text-sm font-medium tracking-[0.18em] uppercase rounded-full hover:bg-[#2A2420] hover:text-[#F9F6F1] active:scale-[0.98] transition-all"
+              >
+                Agregar al carrito
               </button>
-              <p className="mt-3 text-center text-xs text-[#7A6E66]">
-                Te contactaremos para confirmar tu pedido
-              </p>
+
+              {cart.length === 0 && (
+                <>
+                  <a
+                    href={`https://wa.me/573012208727?text=${encodeURIComponent(
+                      `Hola! Quisiera hacer un pedido de un cojín de meditación:\n\n• Tela: ${selectedFabric.name}\n• Pintura: ${selectedPaint.name}\n• Diseño: ${selectedMandala.name}`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full py-4 bg-[#2A2420] text-[#F9F6F1] text-sm font-medium tracking-[0.18em] uppercase rounded-full hover:bg-[#3D3535] active:scale-[0.98] transition-all text-center"
+                  >
+                    Hacer pedido
+                  </a>
+                  <p className="text-center text-xs text-[#7A6E66]">
+                    Te contactaremos para confirmar tu pedido
+                  </p>
+                </>
+              )}
             </div>
+
+            {/* Cart */}
+            {cart.length > 0 && (
+              <section>
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7A6E66] mb-3">
+                  Tu pedido ({cart.length} cojín{cart.length > 1 ? 'es' : ''})
+                </h2>
+                <div className="bg-white rounded-2xl px-4 border border-[#E8DDD4]">
+                  {cart.map(item => (
+                    <CartItemRow
+                      key={item.id}
+                      item={item}
+                      onRemove={() => removeFromCart(item.id)}
+                    />
+                  ))}
+                </div>
+
+                <a
+                  href={`https://wa.me/573012208727?text=${encodeURIComponent(buildWhatsAppMessage())}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 block w-full py-4 bg-[#2A2420] text-[#F9F6F1] text-sm font-medium tracking-[0.18em] uppercase rounded-full hover:bg-[#3D3535] active:scale-[0.98] transition-all text-center"
+                >
+                  Hacer pedido
+                </a>
+                <p className="mt-3 text-center text-xs text-[#7A6E66]">
+                  Te contactaremos para confirmar tu pedido
+                </p>
+              </section>
+            )}
 
           </div>
         </div>
