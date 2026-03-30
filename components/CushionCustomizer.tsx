@@ -90,7 +90,7 @@ function MandalaCard({
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 bg-white transition-all hover:scale-105 focus:outline-none ${
+      className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 bg-white transition-all hover:scale-105 focus:outline-none cursor-pointer ${
         selected ? 'border-[#2A2420] shadow-md' : 'border-[#E8DDD4] hover:border-[#C8B8A8]'
       }`}
     >
@@ -128,7 +128,7 @@ function CartItemRow({ item, onRemove }: { item: CartItem; onRemove: () => void 
       {/* Remove */}
       <button
         onClick={onRemove}
-        className="text-[#7A6E66] hover:text-[#2A2420] transition-colors text-lg leading-none focus:outline-none"
+        className="text-[#7A6E66] hover:text-[#2A2420] transition-colors text-lg leading-none focus:outline-none cursor-pointer"
         title="Eliminar"
       >
         ×
@@ -259,7 +259,7 @@ export function CushionCustomizer() {
             <div className="pt-2 space-y-3">
               <button
                 onClick={addToCart}
-                className="w-full py-4 border-2 border-[#2A2420] text-[#2A2420] text-sm font-medium tracking-[0.18em] uppercase rounded-full hover:bg-[#2A2420] hover:text-[#F9F6F1] active:scale-[0.98] transition-all"
+                className="w-full py-4 border-2 border-[#2A2420] text-[#2A2420] text-sm font-medium tracking-[0.18em] uppercase rounded-full hover:bg-[#2A2420] hover:text-[#F9F6F1] active:scale-[0.98] transition-all cursor-pointer"
               >
                 Agregar al carrito
               </button>
